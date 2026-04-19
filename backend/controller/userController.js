@@ -81,7 +81,7 @@ async function login(req, res) {
     const token = jwt.sign({ username, userid }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
-    res.json({ message: "Login successful", token });
+    res.json({ message: "Login successful", token, username });
   } catch (err) {
     console.error("Error logging in user:", err.message);
     res
@@ -92,10 +92,16 @@ async function login(req, res) {
 
 async function checkUser(req, res) {
   try {
-    const { email } = req.body || {};
+    const { userid } = req.user || {};
+    if (!userid) {
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ message: "Unauthorized" });
+    }
+
     const [rows] = await dbconnection.execute(
-      "SELECT * FROM users WHERE email = ?",
-      [email],
+      "SELECT * FROM users WHERE userid = ?",
+      [userid],
     );
     if (rows.length > 0) {
       res.json({ message: "User exists", user: rows[0] });

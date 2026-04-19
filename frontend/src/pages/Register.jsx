@@ -1,11 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useRef } from 'react'
 import axiosBase from '../axiosConfig'
-import {useNavigate} from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 
 function Register() {
     const navigate = useNavigate()
-
+    const [errorMessage, setErrorMessage] = useState('')
+    const [successMessage, setSuccessMessage] = useState('')
 
     const usernameRef = useRef(null)
     const firstNameRef = useRef(null)
@@ -16,64 +17,73 @@ function Register() {
     async function handleSubmit(e) {
         e.preventDefault()
         const userData = {
-            username: usernameRef.current.value,
-            firstname: firstNameRef.current.value,
-            lastname: lastNameRef.current.value,
-            email: emailRef.current.value,
-            password: passwordRef.current.value,
+            username: usernameRef.current.value.trim(),
+            firstname: firstNameRef.current.value.trim(),
+            lastname: lastNameRef.current.value.trim(),
+            email: emailRef.current.value.trim(),
+            password: passwordRef.current.value.trim(),
         }
         if (!userData.username ||
             !userData.firstname ||
             !userData.lastname ||
             !userData.email ||
             !userData.password) {
-            alert('All fields are required')
+            setErrorMessage('All fields are required')
+            setSuccessMessage('')
             return
         }
 
-
         try {
-            await axiosBase.post('/user/register', userData)
-            alert("User registered successfully")
+            const { data } = await axiosBase.post('/user/register', userData)
+            setSuccessMessage(data.message || 'User registered successfully')
+            setErrorMessage('')
             navigate('/login')
         } catch (error) {
-            console.error('Error registering user:', error)
-            alert('Error registering user')
-
+            const message = error.response?.data?.message || 'Error registering user'
+            setErrorMessage(message)
+            setSuccessMessage('')
+            console.error('Error registering user:', error.response || error)
         }
     }
 
     return (
-        <section>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <span>Username:</span>
-                    <input type="text" placeholder='username' ref={usernameRef} />
-                </div>
-                <br />
-                <div>
-                    <span>First Name:</span>
-                    <input type="text" placeholder='first name' ref={firstNameRef} />
-                </div>
-                <br />
-                <div>
-                    <span>Last Name:</span>
-                    <input type="text" placeholder='last name' ref={lastNameRef} />
-                </div>
-                <br />
-                <div>
-                    <span>Email:</span>
-                    <input type="email" placeholder='email' ref={emailRef} />
-                </div>
-                <br />
-                <div>
-                    <span>Password:</span>
-                    <input type="password" placeholder='password' ref={passwordRef} />
-                </div>
-                <br />
-                <button type="submit">Register</button>
-            </form>
-        </section>
+        <main className="page page-register">
+            <section className="form-card">
+                <h2>Join the network</h2>
+                <p>Already have an account? <Link to="/login">Sign in</Link></p>
+                <form onSubmit={handleSubmit}>
+                    <div className="form-field">
+                        <label>Username</label>
+                        <input type="text" placeholder='User Name' ref={usernameRef} />
+                    </div>
+                    <div className="form-field">
+                        <label>First Name</label>
+                        <input type="text" placeholder='First Name' ref={firstNameRef} />
+                    </div>
+                    <div className="form-field">
+                        <label>Last Name</label>
+                        <input type="text" placeholder='Last Name' ref={lastNameRef} />
+                    </div>
+                    <div className="form-field">
+                        <label>Email</label>
+                        <input type="email" placeholder='Email' ref={emailRef} />
+                    </div>
+                    <div className="form-field">
+                        <label>Password</label>
+                        <input type="password" placeholder='Password' ref={passwordRef} />
+                    </div>
+                    <button className="button button--primary" type="submit">Agree and Join</button>
+                </form>
+                {errorMessage && <p style={{ color: 'red', marginTop: '1rem' }}>{errorMessage}</p>}
+                {successMessage && <p style={{ color: 'green', marginTop: '1rem' }}>{successMessage}</p>}
+            </section>
+
+            <section className="hero">
+                <h1>Evangadi Networks Q&A</h1>
+                <p>Start your journey with our engaged developer community. Ask questions, share answers, and learn together.</p>
+                <Link to="/how-it-works" className="button button--secondary hero-button">How it works</Link>
+            </section>
+        </main>
     )
 }
 
