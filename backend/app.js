@@ -1,0 +1,42 @@
+require("dotenv").config();
+const express = require("express");
+const app = express();
+const port = 5500;
+
+// Middleware to parse JSON and URL-encoded bodies
+app.use(express.json());
+
+// db connection file
+const dbconnection = require("./db/dbconfig");
+
+// user routes middleware file
+const userRoutes = require("./routes/userRoute");
+// question routes middleware file
+const questionRoutes = require("./routes/questionRoute");
+// answer routes middleware file
+const answerRoutes = require("./routes/answerRoute");
+
+
+// user routes middleware
+app.use("/api/user", userRoutes);
+
+// answer routes middleware
+app.use("/api/answers", answerRoutes);
+
+// question routes middleware
+app.use("/api/questions", questionRoutes);
+
+async function testDBConnection() {
+  try {
+    const [rows] = await dbconnection.execute("SELECT 'test'");
+    console.log("Database connection successful. Query result:", rows);
+
+    await app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  } catch (err) {
+    console.error("Error executing query:", err.message);
+  }
+}
+// Call the test function
+testDBConnection();
